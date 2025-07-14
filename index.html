@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evasive Button</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the button and message */
+        body {
+            font-family: "Inter", sans-serif;
+            overflow: hidden; /* Prevent scrollbars when button moves */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text color */
+        }
+        #gameContainer {
+            position: relative; /* For positioning the button */
+            width: 90vw; /* Responsive width */
+            height: 80vh; /* Responsive height */
+            background-color: #2d3748; /* Slightly lighter background for container */
+            border-radius: 1.5rem; /* Rounded corners */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Keep button within container */
+        }
+        #evasiveButton {
+            position: absolute; /* Allows button to move */
+            transition: all 0.2s ease-out; /* Smooth movement */
+            cursor: pointer;
+            z-index: 10; /* Ensure it's above other elements */
+        }
+        #message {
+            display: none; /* Hidden by default */
+            font-size: 3rem; /* Large font size */
+            font-weight: bold;
+            color: #48bb78; /* Green color for success message */
+            text-align: center;
+            z-index: 5; /* Below the button initially */
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 640px) {
+            #gameContainer {
+                height: 90vh;
+            }
+            #message {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="flex flex-col items-center justify-center p-4">
+        <!-- The single button that will move, with updated text -->
+        <button id="evasiveButton"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg
+                       focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50
+                       transform transition-transform duration-200 ease-in-out
+                       active:scale-95">
+            Click To Redirect
+        </button>
+
+        <!-- The message to be displayed -->
+        <div id="message" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            Hey Fool 😃🍿
+        </div>
+    </div>
+
+    <script>
+        // Get references to the HTML elements
+        const evasiveButton = document.getElementById('evasiveButton');
+        const messageDiv = document.getElementById('message');
+        const gameContainer = document.getElementById('gameContainer');
+
+        let clickCount = 0; // Initialize click counter
+        const maxEvasiveClicks = 7; // Number of times the button will move
+
+        // Function to set a random position for the button
+        function setRandomPosition() {
+            // Get container dimensions
+            const containerWidth = gameContainer.offsetWidth;
+            const containerHeight = gameContainer.offsetHeight;
+
+            // Get button dimensions
+            const buttonWidth = evasiveButton.offsetWidth;
+            const buttonHeight = evasiveButton.offsetHeight;
+
+            // Calculate max possible top and left values to keep button within container
+            // Ensure there's enough padding so the button doesn't touch the edges
+            const padding = 20; // pixels
+            const maxLeft = containerWidth - buttonWidth - padding * 2;
+            const maxTop = containerHeight - buttonHeight - padding * 2;
+
+            // Generate random positions within the padded area
+            const newLeft = padding + Math.random() * maxLeft;
+            const newTop = padding + Math.random() * maxTop;
+
+            // Apply new positions
+            evasiveButton.style.left = `${newLeft}px`;
+            evasiveButton.style.top = `${newTop}px`;
+        }
+
+        // Event listener for button clicks
+        evasiveButton.addEventListener('click', () => {
+            clickCount++; // Increment the counter with each click
+
+            if (clickCount <= maxEvasiveClicks) {
+                // If it's one of the first 7 clicks, move the button
+                setRandomPosition();
+                console.log(`Click count: ${clickCount}. Button moved.`);
+            } else {
+                // On the 8th click (clickCount > maxEvasiveClicks)
+                console.log(`Click count: ${clickCount}. Button is now clickable!`);
+
+                // Stop the button from moving further
+                evasiveButton.style.position = 'static'; // Make it static
+                evasiveButton.style.transform = 'none'; // Reset any transform
+                evasiveButton.style.left = ''; // Clear left/top styles
+                evasiveButton.style.top = '';
+                evasiveButton.classList.remove('absolute'); // Remove absolute positioning class
+
+                // Center the button if it's not already
+                evasiveButton.classList.add('mx-auto'); // Add margin auto for horizontal centering
+                gameContainer.classList.remove('justify-center', 'items-center'); // Remove centering from container
+                gameContainer.classList.add('flex-col', 'justify-start', 'items-center', 'pt-20'); // Adjust container layout
+
+                // Hide the button and show the message
+                evasiveButton.style.display = 'none';
+                messageDiv.style.display = 'block';
+
+                // Optional: Change button text or disable it after it's "caught"
+                // evasiveButton.textContent = "Gotcha!";
+                // evasiveButton.disabled = true;
+            }
+        });
+
+        // Initial centering of the button when the page loads
+        window.onload = () => {
+            // Set initial position to center the button within the container
+            const containerWidth = gameContainer.offsetWidth;
+            const containerHeight = gameContainer.offsetHeight;
+            const buttonWidth = evasiveButton.offsetWidth;
+            const buttonHeight = evasiveButton.offsetHeight;
+
+            evasiveButton.style.left = `${(containerWidth - buttonWidth) / 2}px`;
+            evasiveButton.style.top = `${(containerHeight - buttonHeight) / 2}px`;
+        };
+
+        // Recalculate button position on window resize to keep it within bounds
+        window.addEventListener('resize', () => {
+            if (clickCount <= maxEvasiveClicks) {
+                // Only re-position if it's still in evasive mode
+                setRandomPosition();
+            }
+        });
+    </script>
+</body>
+</html>
