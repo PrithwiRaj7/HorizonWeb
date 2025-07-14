@@ -80,10 +80,15 @@
         const gameContainer = document.getElementById('gameContainer');
 
         let clickCount = 0; // Initialize click counter
-        const maxEvasiveClicks = 7; // Number of times the button will move
+        const maxEvasiveClicks = 3; // Changed from 7 to 3
 
-        // Function to set a random position for the button
-        function setRandomPosition() {
+        // Function to calculate Euclidean distance between two points
+        function getDistance(x1, y1, x2, y2) {
+            return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        }
+
+        // Function to set the button to the position furthest from its current location
+        function setMaxDistancePosition() {
             // Get container dimensions
             const containerWidth = gameContainer.offsetWidth;
             const containerHeight = gameContainer.offsetHeight;
@@ -92,19 +97,36 @@
             const buttonWidth = evasiveButton.offsetWidth;
             const buttonHeight = evasiveButton.offsetHeight;
 
-            // Calculate max possible top and left values to keep button within container
-            // Ensure there's enough padding so the button doesn't touch the edges
-            const padding = 20; // pixels
-            const maxLeft = containerWidth - buttonWidth - padding * 2;
-            const maxTop = containerHeight - buttonHeight - padding * 2;
+            // Get current button position (top-left corner)
+            const currentX = evasiveButton.offsetLeft;
+            const currentY = evasiveButton.offsetTop;
 
-            // Generate random positions within the padded area
-            const newLeft = padding + Math.random() * maxLeft;
-            const newTop = padding + Math.random() * maxTop;
+            // Define padding to keep button away from edges
+            const padding = 20;
 
-            // Apply new positions
-            evasiveButton.style.left = `${newLeft}px`;
-            evasiveButton.style.top = `${newTop}px`;
+            // Define potential target corner coordinates (top-left of button)
+            const targets = [
+                { x: padding, y: padding }, // Top-Left
+                { x: containerWidth - buttonWidth - padding, y: padding }, // Top-Right
+                { x: padding, y: containerHeight - buttonHeight - padding }, // Bottom-Left
+                { x: containerWidth - buttonWidth - padding, y: containerHeight - buttonHeight - padding } // Bottom-Right
+            ];
+
+            let maxDistance = -1;
+            let bestTarget = { x: currentX, y: currentY }; // Default to current if no better target found
+
+            // Find the target corner that is furthest from the current position
+            targets.forEach(target => {
+                const dist = getDistance(currentX, currentY, target.x, target.y);
+                if (dist > maxDistance) {
+                    maxDistance = dist;
+                    bestTarget = target;
+                }
+            });
+
+            // Apply the new position
+            evasiveButton.style.left = `${bestTarget.x}px`;
+            evasiveButton.style.top = `${bestTarget.y}px`;
         }
 
         // Event listener for button clicks
@@ -112,11 +134,11 @@
             clickCount++; // Increment the counter with each click
 
             if (clickCount <= maxEvasiveClicks) {
-                // If it's one of the first 7 clicks, move the button
-                setRandomPosition();
-                console.log(`Click count: ${clickCount}. Button moved.`);
+                // If it's one of the first 'maxEvasiveClicks' clicks, move the button to max distance
+                setMaxDistancePosition(); // Call the new function
+                console.log(`Click count: ${clickCount}. Button moved to max distance.`);
             } else {
-                // On the 8th click (clickCount > maxEvasiveClicks)
+                // On the (maxEvasiveClicks + 1)th click
                 console.log(`Click count: ${clickCount}. Button is now clickable!`);
 
                 // Stop the button from moving further
@@ -157,7 +179,7 @@
         window.addEventListener('resize', () => {
             if (clickCount <= maxEvasiveClicks) {
                 // Only re-position if it's still in evasive mode
-                setRandomPosition();
+                setMaxDistancePosition(); // Use the max distance function for responsiveness too
             }
         });
     </script>
